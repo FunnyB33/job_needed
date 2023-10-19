@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>タイマー</title>
+    <style>
+        /* CSS スタイリング */
+        .timer {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer">
+        <span id="display">00:00:00.000</span>
+        <button id="start" onclick="startTimer()">スタート</button>
+        <button id="stop" onclick="stopTimer()">ストップ</button>
+        <button id="reset" onclick="resetTimer()">リセット</button>
+        <button id="toggleDisplay" onclick="toggleDisplay()">表示切り替え</button>
+    </div>
+
+    <script>
+        // JavaScript コード
+        const display = document.getElementById('display');
+        const toggleButton = document.getElementById('toggleDisplay');
+        let timer;
+        let milliseconds = 0;
+        let seconds = 0;
+        let minutes = 0;
+        let hours = 0;
+        let displayMode = 'full'; // 初期表示モード
+
+        function startTimer() {
+            timer = setInterval(updateTimer, 10); // ミリ秒単位で更新
+            document.getElementById('start').disabled = true;
+        }
+
+        function stopTimer() {
+            clearInterval(timer);
+            document.getElementById('start').disabled = false;
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            milliseconds = 0;
+            seconds = 0;
+            minutes = 0;
+            hours = 0;
+            updateDisplay();
+            document.getElementById('start').disabled = false;
+        }
+
+        function updateTimer() {
+            milliseconds += 10;
+            if (milliseconds == 1000) {
+                milliseconds = 0;
+                seconds++;
+                if (seconds == 60) {
+                    seconds = 0;
+                    minutes++;
+                    if (minutes == 60) {
+                        minutes = 0;
+                        hours++;
+                        if (hours == 24) {
+                            hours = 0; // 24時間制
+                        }
+                    }
+                }
+            }
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            if (displayMode === 'full') {
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+                display.innerText = timeString;
+            } else if (displayMode === 'minutes') {
+                const timeString = `${(hours * 60 + minutes)}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+                display.innerText = timeString;
+            }
+        }
+
+        function toggleDisplay() {
+            if (displayMode === 'full') {
+                displayMode = 'minutes';
+            } else {
+                displayMode = 'full';
+            }
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
