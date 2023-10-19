@@ -1,23 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-    <title>タイマー</title>
+    <meta charset="UTF-8">
+    <title>タイマーアプリ</title>
     <style>
-        /* CSS スタイリング */
+        * {
+            -webkit-box-sizing: inherit;
+            box-sizing: inherit;
+        }
+
+        html {
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            font-size: 62.5%;
+        }
+
         .timer {
             text-align: center;
-            font-size: 24px;
-            margin-top: 20px;
+            font-family: Arial, sans-serif;
+            padding: 20px; /* タイマーの周りに余白を追加 */
+        }
+
+        #display {
+            font-size: 4em; /* タイマーのフォントサイズを大きく */
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #333;
+            background-color: #f0f0f0;
+            border-radius: 0.5rem;
+        }
+
+        .buttons {
+            margin-top: 20px; /* ボタンの上部に余白を追加 */
+            display: flex;
+            flex-direction: column; /* ボタンを縦に並べる */
+            align-items: center; /* ボタンを中央に配置 */
+            gap: 10px; /* ボタン間の間隔を設定 */
+        }
+
+        /* 各ボタンのデフォルトの背景色 */
+        .start-button, .stop-button, .toggle-button, .reset-button {
+            background-color: #ccc; /* 常時明るい灰色 */
+        }
+
+        /* 各ボタンのホバー時のスタイル */
+        .start-button:hover {
+            background-color: red; /* スタートボタンのホバー時の背景色を赤に変更 */
+            color:white
+        }
+
+        .stop-button:hover {
+            background-color: blue; /* ストップボタンのホバー時の背景色を青に変更 */
+            color: white;
+        }
+
+        .toggle-button:hover {
+            background-color: rgb(108, 1, 108); /* 表示切り替えボタンのホバー時の背景色を紫に変更 */
+            color:white;
+        }
+
+        .reset-button:hover {
+            background-color: yellow; /* リセットボタンのホバー時の背景色を黄色に変更 */
+            color: violet;
+        }
+
+        button {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.5;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-transition: all 0.3s;
+            transition: all 0.3s;
+            text-align: center;
+            vertical-align: middle;
+            text-decoration: none;
+            letter-spacing: 0.1em;
+            border-radius: 0.5rem;
+            color: #000; /* 文字色を黒に変更 */
+        }
+
+        button.btn-border {
+            padding: 0;
+            border: 2px solid #000;
+            border-radius: 0.5rem;
+            background: #fff;
+            color: #000;
+        }
+
+        button.btn-border:before {
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            display: block;
+            width: 100%;
+            height: 14px;
+            content: "";
+            -webkit-transition: all 0.3s;
+            transition: all 0.3s;
+            border: 2px solid #000;
+            border-top: 1px solid #000;
+            border-radius: 0 0 0.5rem 0.5rem;
+            background-image: -webkit-repeating-linear-gradient(
+                135deg,
+                #000,
+                #000 1px,
+                transparent 2px,
+                transparent 5px
+            );
+            background-image: repeating-linear-gradient(
+                -45deg,
+                #000,
+                #000 1px,
+                transparent 2px,
+                transparent 5px
+            );
+            background-size: 7px 7px;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        button.btn-border:hover {
+            -webkit-transform: translate(0, 3px);
+            transform: translate(0, 3px);
+        }
+
+        button.btn-border:hover:before {
+            bottom: -5px;
+        }
+
+        button.btn-border:active {
+            -webkit-transform: translate(0, 7px);
+            transform: translate(0, 7px);
+        }
+
+        button.btn-border:active:before {
+            bottom: -1px;
         }
     </style>
 </head>
 <body>
     <div class="timer">
-        <span id="display">00:00:00.000</span>
-        <button id="start" onclick="startTimer()">スタート</button>
-        <button id="stop" onclick="stopTimer()">ストップ</button>
-        <button id="reset" onclick="resetTimer()">リセット</button>
-        <button id="toggleDisplay" onclick="toggleDisplay()">表示切り替え</button>
+        <span id="display">00:00:00.0</span>
+        <div class="buttons">
+            <button id="start" class="start-button" onclick="startTimer()">スタート</button>
+            <button id="stop" class="stop-button" onclick="stopTimer()">ストップ</button>
+            <button id="toggleDisplay" class="toggle-button" onclick="toggleDisplay()">表示切り替え</button>
+            <button id="reset" class="reset-button" onclick="confirmReset()">リセット</button> <!-- リセットボタンを下に移動 -->
+        </div>
     </div>
 
     <script>
@@ -25,14 +158,14 @@
         const display = document.getElementById('display');
         const toggleButton = document.getElementById('toggleDisplay');
         let timer;
-        let milliseconds = 0;
+        let tenths = 0; // ミリ秒の小数部を表現
         let seconds = 0;
         let minutes = 0;
         let hours = 0;
         let displayMode = 'full'; // 初期表示モード
 
         function startTimer() {
-            timer = setInterval(updateTimer, 10); // ミリ秒単位で更新
+            timer = setInterval(updateTimer, 100); // 0.1秒ごとに更新
             document.getElementById('start').disabled = true;
         }
 
@@ -43,7 +176,7 @@
 
         function resetTimer() {
             clearInterval(timer);
-            milliseconds = 0;
+            tenths = 0;
             seconds = 0;
             minutes = 0;
             hours = 0;
@@ -52,9 +185,9 @@
         }
 
         function updateTimer() {
-            milliseconds += 10;
-            if (milliseconds == 1000) {
-                milliseconds = 0;
+            tenths++;
+            if (tenths == 10) { // 0.1秒ごとの更新
+                tenths = 0;
                 seconds++;
                 if (seconds == 60) {
                     seconds = 0;
@@ -73,10 +206,10 @@
 
         function updateDisplay() {
             if (displayMode === 'full') {
-                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${tenths}`; // .0に変更
                 display.innerText = timeString;
             } else if (displayMode === 'minutes') {
-                const timeString = `${(hours * 60 + minutes)}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+                const timeString = `${(hours * 60 + minutes)}:${seconds.toString().padStart(2, '0')}.${tenths}`; // .0に変更
                 display.innerText = timeString;
             }
         }
@@ -88,6 +221,13 @@
                 displayMode = 'full';
             }
             updateDisplay();
+        }
+
+        function confirmReset() {
+            const confirmReset = window.confirm('本当にリセットしますか？');
+            if (confirmReset) {
+                resetTimer();
+            }
         }
     </script>
 </body>
